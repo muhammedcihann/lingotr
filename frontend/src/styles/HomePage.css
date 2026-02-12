@@ -1,0 +1,321 @@
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@600;700;800;900&family=Work+Sans:wght@400;500;600&display=swap');
+
+.home-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a4da8 0%, #1e5bb8 50%, #0066cc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.lingo-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.15;
+}
+
+.lingo-circles::before,
+.lingo-circles::after {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+}
+
+.lingo-circles::before {
+  top: -200px;
+  right: -200px;
+  animation: float 20s ease-in-out infinite;
+}
+
+.lingo-circles::after {
+  bottom: -200px;
+  left: -200px;
+  animation: float 25s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(50px, -50px) scale(1.1); }
+}
+
+.home-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 2rem;
+  max-width: 600px;
+}
+
+.logo-section {
+  margin-bottom: 4rem;
+}
+
+.lingo-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.title-lingo {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 6rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 
+    0 0 20px rgba(255, 255, 255, 0.5),
+    0 0 40px rgba(255, 255, 255, 0.3),
+    4px 4px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.title-turkiye {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #ffd700;
+  text-shadow: 
+    0 0 10px rgba(255, 215, 0, 0.6),
+    2px 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.2em;
+}
+
+.subtitle {
+  font-family: 'Work Sans', sans-serif;
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.menu-btn {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding: 1.25rem 2.5rem;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.menu-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.menu-btn:hover::before {
+  transform: translateX(100%);
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #00ff88 0%, #00cc6e 100%);
+  color: #003322;
+}
+
+.start-btn:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 255, 136, 0.4);
+}
+
+.start-btn:active {
+  transform: translateY(-2px) scale(1.01);
+}
+
+.rules-btn {
+  background: linear-gradient(135deg, #ffffff 0%, #e8e8e8 100%);
+  color: #0a4da8;
+}
+
+.rules-btn:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(255, 255, 255, 0.3);
+}
+
+.btn-icon {
+  font-size: 1.6rem;
+}
+
+/* Rules Modal */
+.rules-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+  padding: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.rules-content {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+  padding: 2.5rem;
+  border-radius: 24px;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #ff4444;
+  color: white;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: #ff0000;
+  transform: rotate(90deg) scale(1.1);
+}
+
+.rules-content h2 {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 2rem;
+  color: #0a4da8;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.rules-section {
+  margin-bottom: 1.5rem;
+}
+
+.rules-section h3 {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 1.3rem;
+  color: #1e5bb8;
+  margin-bottom: 0.75rem;
+}
+
+.rules-section ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.rules-section li {
+  font-family: 'Work Sans', sans-serif;
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.rules-section li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: #0a4da8;
+  font-weight: bold;
+}
+
+.color-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.color-box {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-family: 'Work Sans', sans-serif;
+  font-weight: 600;
+  text-align: center;
+  color: white;
+}
+
+.color-box.green {
+  background: #00cc6e;
+}
+
+.color-box.yellow {
+  background: #ffd700;
+  color: #333;
+}
+
+.color-box.gray {
+  background: #666;
+}
+
+.good-luck {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 1.4rem;
+  color: #00cc6e;
+  text-align: center;
+  margin-top: 1.5rem;
+  font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .title-lingo {
+    font-size: 4rem;
+  }
+  
+  .title-turkiye {
+    font-size: 1.8rem;
+  }
+  
+  .menu-btn {
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+  }
+  
+  .rules-content {
+    padding: 2rem 1.5rem;
+  }
+}
