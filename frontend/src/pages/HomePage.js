@@ -70,8 +70,9 @@ export default function HomePage() {
                 <h3>⏱️ Süre ve Deneme</h3>
                 <ul>
                   <li>Her kelime için <strong>5 deneme hakkınız</strong> var</li>
-                  <li>Her tahmin için <strong>10 saniye</strong> süreniz var</li>
-                  <li>Süre biterse <strong>-200 puan</strong> kesilir</li>
+                  <li>Her tahmin için <strong>15 saniye</strong> süreniz var</li>
+                  <li>Süre biterse o soru <strong>YANAR</strong> ve puan alamazsınız</li>
+                  <li>Geçersiz kelime girerseniz o soru <strong>YANAR</strong></li>
                 </ul>
               </div>
 
@@ -87,10 +88,18 @@ export default function HomePage() {
               <div className="rules-section">
                 <h3>💰 Puanlama</h3>
                 <ul>
-                  <li><strong>4 harfli kelime:</strong> 1000 puan</li>
-                  <li><strong>5 harfli kelime:</strong> 2000 puan</li>
-                  <li><strong>6 harfli kelime:</strong> 2000 puan</li>
-                  <li>Her yanlış tahminde <strong>-200 puan</strong></li>
+                  <li><strong>4 Harfliler:</strong> 1000 Puan (Yanlış: -100)</li>
+                  <li><strong>5-6 Harfliler:</strong> 2000 Puan (Yanlış: -200)</li>
+                </ul>
+              </div>
+
+              <div className="rules-section">
+                <h3>🏆 Final Turu (Deathmatch)</h3>
+                <ul>
+                  <li>Toplam <strong>120 saniye</strong> süreniz var (Süre durmaz!)</li>
+                  <li>Sırasıyla 4, 5, 6 ve 7 harfli kelimeler sorulur</li>
+                  <li>Her kelimeyi bildiğinizde ödülünüz katlanır</li>
+                  <li>Bilemezseniz aynı seviyeden yeni kelime gelir</li>
                 </ul>
               </div>
 
