@@ -14,6 +14,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// --- KEEP-ALIVE (Sunucuyu Uyanık Tutma) ---
+app.get('/health', (req, res) => {
+    res.status(200).send('Ben buradayım, uyumuyorum! 🚀');
+});
+
 // Kelime Veritabanını Yükle
 let WORD_DB = {};
 try {
