@@ -346,4 +346,29 @@ router.post('/start-final', (req, res) => {
     });
 });
 
+// Final Modu: Pas Geçme (Sadece geçerli bir tahmin yapıldıysa)
+router.post('/pass', (req, res) => {
+    const { sessionId } = req.body;
+    const session = global.gameSessions.get(sessionId);
+    
+    if (!session || session.mode !== 'final') return res.status(400).json({ error: "Geçersiz işlem" });
+
+    // Kural: En az 1 geçerli tahmin yapılmış olmalı
+    if (session.guesses.length === 0) {
+        return res.status(400).json({ error: "Pas geçmek için önce geçerli bir tahmin yapmalısınız." });
+    }
+
+    // Yeni kelime ver (Aynı seviyeden)
+    const newWord = getRandomWord(session.finalStage);
+    session.words[0] = { word: newWord, length: session.finalStage };
+    session.guesses = []; // Tahminleri sıfırla
+
+    res.json({
+        status: 'passed',
+        message: 'Pas geçildi! Yeni kelime geliyor...',
+        newFirstLetter: newWord[0],
+        newWordLength: session.finalStage
+    });
+});
+
 module.exports = router;

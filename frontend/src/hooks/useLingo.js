@@ -131,7 +131,7 @@ export const useLingo = () => {
             
             setCurrentRow(0); // BUG FIX: Final turunda satırı başa al
             setGuesses(Array(5).fill(null)); // Finalde de 5 hak var
-            setTimeLeft(120); // 120 saniye toplam süre
+            setTimeLeft(150); // 150 saniye toplam süre
             setIsTransitioning(false); // BUG FIX: Geçiş kilidini aç
             processingRef.current = false;
         } catch (err) {
@@ -445,6 +445,42 @@ export const useLingo = () => {
         }
     }, [gameState, currentGuess, currentWordLength, submitGuess]);
 
+    // Pas Geçme Fonksiyonu (Final Modu İçin)
+    const passTurn = useCallback(async () => {
+        if (processingRef.current) return;
+        
+        // Validasyon: Hiç tahmin yapılmış mı? (Null olmayan en az bir değer var mı?)
+        const hasGuesses = guesses.some(g => g !== null);
+        if (!hasGuesses) return;
+
+        processingRef.current = true;
+        setIsTransitioning(true);
+
+        try {
+            const res = await axios.post(`${API_URL}/pass`, { sessionId });
+            
+            if (res.data.status === 'passed') {
+                setMessage(res.data.message);
+                
+                setTimeout(() => {
+                    setFirstLetter(res.data.newFirstLetter);
+                    const initialGuess = constructInitialGuess(res.data.newWordLength, res.data.newFirstLetter, []);
+                    setCurrentGuess(initialGuess);
+                    
+                    setGuesses(Array(5).fill(null));
+                    setCurrentRow(0);
+                    setMessage("");
+                    setIsTransitioning(false);
+                    processingRef.current = false;
+                }, 1000);
+            }
+        } catch (err) {
+            console.error(err);
+            setIsTransitioning(false);
+            processingRef.current = false;
+        }
+    }, [guesses, sessionId, constructInitialGuess]);
+
     // Skoru Kaydet
     const submitScore = async (playerName) => {
         try {
@@ -471,6 +507,7 @@ export const useLingo = () => {
         startFinal,
         submitScore,
         handleKey,
+        passTurn,
         letterStatuses
     };
 };

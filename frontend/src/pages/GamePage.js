@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLingo } from "../hooks/useLingo";
 import GameBoard from "../components/GameBoard";
 import Keyboard from "../components/Keyboard";
@@ -7,6 +8,7 @@ import "../styles/GamePage.css";
 export default function GamePage() {
   const [playerName, setPlayerName] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const navigate = useNavigate();
 
   const {
     gameState,
@@ -23,6 +25,7 @@ export default function GamePage() {
     startFinal,
     submitScore,
     handleKey,
+    passTurn,
     letterStatuses
   } = useLingo();
 
@@ -116,6 +119,23 @@ export default function GamePage() {
           />
         </div>
 
+        {/* Final Modu Pas Butonu */}
+        {gameState === 'final' && (
+          <div className="flex justify-center my-2">
+            <button 
+              onClick={passTurn}
+              disabled={!guesses.some(g => g !== null)}
+              className={`px-6 py-2 rounded-full font-bold text-white transition-all ${
+                guesses.some(g => g !== null) 
+                  ? 'bg-blue-600 hover:bg-blue-700 shadow-lg transform hover:scale-105' 
+                  : 'bg-gray-700 opacity-50 cursor-not-allowed'
+              }`}
+            >
+              PAS GEÇ ⏭️
+            </button>
+          </div>
+        )}
+
         <div className="keyboard" data-testid="keyboard">
           <Keyboard onKeyPress={handleKey} letterStatuses={letterStatuses} />
         </div>
@@ -174,9 +194,14 @@ export default function GamePage() {
                  <p className="text-green-400 font-bold mb-6">Skorunuz Kaydedildi! ✅</p>
                )}
 
-               <button className="next-btn" onClick={() => window.location.reload()}>
-                 TEKRAR OYNA
-               </button>
+               <div className="flex gap-3 w-full">
+                 <button className="next-btn flex-1" onClick={() => window.location.reload()}>
+                   TEKRAR OYNA
+                 </button>
+                 <button className="next-btn flex-1 bg-gray-600 hover:bg-gray-700 border-gray-500" onClick={() => navigate('/')}>
+                   ANA MENÜ
+                 </button>
+               </div>
              </div>
            </div>
         )}

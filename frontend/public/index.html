@@ -183,5 +183,18 @@
                 },
             });
         </script>
+        <script>
+            // Developed by MC yazısını sadece ana sayfada göster, oyunda gizle
+            function handleBadgeVisibility() {
+                var badge = document.querySelector('.mc-badge');
+                if (badge) {
+                    var hash = window.location.hash;
+                    // Sadece #/ (ana sayfa) ise göster, yoksa gizle
+                    badge.style.display = (hash === '#/' || hash === '' || hash === '#') ? 'flex' : 'none';
+                }
+            }
+            window.addEventListener('hashchange', handleBadgeVisibility);
+            window.addEventListener('load', handleBadgeVisibility);
+        </script>
     </body>
 </html>
