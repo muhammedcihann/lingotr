@@ -1,9 +1,9 @@
 import React from 'react';
 
 const KEYS = [
-  ["E", "R", "T", "Y", "U", "I", "O", "P", "Ğ", "Ü"],
+  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "Ğ", "Ü"],
   ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Ş", "İ"],
-  ["Z", "C", "V", "B", "N", "M", "Ö", "Ç"]
+  ["Z", "X", "C", "V", "B", "N", "M", "Ö", "Ç"]
 ];
 
 export default function Keyboard({ onKeyPress, letterStatuses = {} }) {
