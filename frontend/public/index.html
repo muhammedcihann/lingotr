@@ -50,35 +50,36 @@
         <style>
             .mc-badge {
                 position: fixed;
-                bottom: 24px;
-                right: 24px;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
                 z-index: 10000;
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                padding: 10px 20px;
-                background: rgba(10, 10, 10, 0.8);
-                backdrop-filter: blur(12px);
+                gap: 10px;
+                padding: 8px 24px;
+                background: rgba(0, 0, 0, 0.4);
+                backdrop-filter: blur(8px);
                 -webkit-backdrop-filter: blur(12px);
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.1);
                 border-radius: 50px;
                 text-decoration: none;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             }
             .mc-badge:hover {
-                transform: translateY(-3px);
-                background: rgba(0, 0, 0, 0.95);
-                border-color: rgba(255, 215, 0, 0.4);
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+                transform: translateX(-50%) translateY(-2px);
+                background: rgba(0, 0, 0, 0.7);
+                border-color: rgba(251, 191, 36, 0.4);
+                box-shadow: 0 0 20px rgba(251, 191, 36, 0.15);
             }
             .mc-badge span {
                 font-family: 'Inter', sans-serif;
                 font-size: 12px;
-                color: rgba(255, 255, 255, 0.6);
+                color: rgba(255, 255, 255, 0.5);
                 font-weight: 500;
                 letter-spacing: 0.5px;
-                transition: color 0.3s ease;
+                text-transform: uppercase;
             }
             .mc-badge:hover span {
                 color: rgba(255, 255, 255, 0.9);
@@ -86,11 +87,8 @@
             .mc-badge strong {
                 font-family: 'Inter', sans-serif;
                 font-size: 14px;
-                font-weight: 800;
-                background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-                -webkit-background-clip: text;
-                background-clip: text;
-                color: transparent;
+                font-weight: 700;
+                color: #fbbf24;
                 letter-spacing: 1px;
             }
         </style>
@@ -108,10 +106,6 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
-        <a href="https://muhammedcihann.github.io/portfolio/" target="_blank" class="mc-badge">
-            <span>Developed by</span>
-            <strong>MC</strong>
-        </a>
         <script>
             !(function (t, e) {
                 var o, n, p, r;
@@ -182,19 +176,6 @@
                     capturePerformance: false,
                 },
             });
-        </script>
-        <script>
-            // Developed by MC yazısını sadece ana sayfada göster, oyunda gizle
-            function handleBadgeVisibility() {
-                var badge = document.querySelector('.mc-badge');
-                if (badge) {
-                    var hash = window.location.hash;
-                    // Sadece #/ (ana sayfa) ise göster, yoksa gizle
-                    badge.style.display = (hash === '#/' || hash === '' || hash === '#') ? 'flex' : 'none';
-                }
-            }
-            window.addEventListener('hashchange', handleBadgeVisibility);
-            window.addEventListener('load', handleBadgeVisibility);
         </script>
     </body>
 </html>

@@ -116,6 +116,11 @@ export default function HomePage() {
             </div>
           </div>
         )}
+
+        <a href="https://muhammedcihann.github.io/portfolio/" target="_blank" className="mc-badge">
+            <span>Developed by</span>
+            <strong>MC</strong>
+        </a>
       </div>
     </div>
   );
