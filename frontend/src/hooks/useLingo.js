@@ -414,14 +414,14 @@ export const useLingo = () => {
         if ((gameState !== 'playing' && gameState !== 'final') || processingRef.current) return;
 
         if (key === 'BACKSPACE') {
-            // Sondan başa doğru ilk silinebilir (kilitli olmayan) karakteri bul
-            const knownChars = constructInitialGuess(currentWordLength, firstLetter, guesses).split('');
+            // Sondan başa doğru ilk silinebilir karakteri bul (İlk harf hariç)
             const currentChars = currentGuess.split('');
             
             // Sağdan sola tara
             for (let i = currentWordLength - 1; i >= 0; i--) {
-                // Eğer bu pozisyon zaten doluysa ve kilitli (known) değilse sil
-                if (currentChars[i] !== ' ' && knownChars[i] === ' ') {
+                if (currentChars[i] !== ' ') {
+                    if (i === 0) break; // İlk harfi silme
+
                     playSound('key');
                     const newChars = [...currentChars];
                     newChars[i] = ' ';
@@ -443,7 +443,7 @@ export const useLingo = () => {
                 }
             }
         }
-    }, [gameState, currentGuess, currentWordLength, submitGuess, firstLetter, guesses, constructInitialGuess]);
+    }, [gameState, currentGuess, currentWordLength, submitGuess]);
 
     // Skoru Kaydet
     const submitScore = async (playerName) => {
