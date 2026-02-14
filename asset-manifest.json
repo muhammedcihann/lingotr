@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/lingotr/static/css/main.3813ce88.css",
+    "main.js": "/lingotr/static/js/main.2baf4dae.js",
+    "index.html": "/lingotr/index.html",
+    "main.3813ce88.css.map": "/lingotr/static/css/main.3813ce88.css.map",
+    "main.2baf4dae.js.map": "/lingotr/static/js/main.2baf4dae.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.3813ce88.css",
+    "static/js/main.2baf4dae.js"
+  ]
+}
