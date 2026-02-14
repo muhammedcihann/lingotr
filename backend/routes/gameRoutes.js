@@ -116,10 +116,19 @@ router.post('/guess', (req, res) => {
 
     if (!session) return res.status(404).json({ error: "Oturum bulunamadı" });
 
+    // Güvenlik: Final modunda indeks kayması varsa düzelt (Crash önleyici)
+    if (session.mode === 'final' && (!session.words[session.currentWordIndex])) {
+        session.currentWordIndex = 0;
+    }
+
     const currentTargetObj = session.words[session.currentWordIndex];
     const targetWord = currentTargetObj.word;
     const scoring = getScoring(targetWord.length);
     
+    // Güvenlik: guess boş gelirse hata vermesin
+    if (!guess || typeof guess !== 'string') {
+        return res.status(400).json({ error: "Geçersiz tahmin verisi" });
+    }
     const guessLower = guess.toLocaleLowerCase('tr-TR');
 
     // --- KLASİK MOD MANTIĞI ---
@@ -323,6 +332,7 @@ router.post('/start-final', (req, res) => {
     session.mode = 'final';
     session.finalStage = 4;
     session.startTime = Date.now(); // 120sn buradan hesaplanacak
+    session.currentWordIndex = 0; // Final modunda tek kelime slotu kullanılır, indeksi sıfırla
     
     const firstWord = getRandomWord(4);
     session.words = [{ word: firstWord, length: 4 }]; // Finalde dinamik tek kelime

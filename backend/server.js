@@ -34,6 +34,47 @@ global.WORD_DB = WORD_DB;
 // Routes
 app.use('/api/game', gameRoutes);
 
+// --- LEADERBOARD (SKOR TABLOSU) ---
+const LEADERBOARD_FILE = path.join(__dirname, 'data', 'leaderboard.json');
+
+// Skoru Kaydet
+app.post('/api/leaderboard', (req, res) => {
+    const { name, score } = req.body;
+    if (!name || score === undefined) return res.status(400).json({ error: "Eksik bilgi" });
+
+    let leaderboard = [];
+    if (fs.existsSync(LEADERBOARD_FILE)) {
+        try {
+            leaderboard = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, 'utf8'));
+        } catch (e) { leaderboard = []; }
+    }
+
+    leaderboard.push({ 
+        name: name.trim().substring(0, 20), // İsim uzunluğunu sınırla
+        score: parseInt(score), 
+        date: new Date().toISOString() 
+    });
+
+    // Puana göre sırala ve ilk 100'ü tut
+    leaderboard.sort((a, b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0, 100);
+
+    fs.writeFileSync(LEADERBOARD_FILE, JSON.stringify(leaderboard, null, 2));
+    res.json({ success: true });
+});
+
+// Skorları Getir
+app.get('/api/leaderboard', (req, res) => {
+    if (fs.existsSync(LEADERBOARD_FILE)) {
+        try {
+            const data = JSON.parse(fs.readFileSync(LEADERBOARD_FILE, 'utf8'));
+            res.json(data);
+        } catch (e) { res.json([]); }
+    } else {
+        res.json([]);
+    }
+});
+
 // --- EKSTRA API ENDPOINTLERİ (İsteğin üzerine eklendi) ---
 
 // 2. Rastgele Kelime Veren API
