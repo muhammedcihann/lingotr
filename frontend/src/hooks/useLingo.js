@@ -67,6 +67,29 @@ export const useLingo = () => {
         return statuses;
     }, [guesses]);
 
+    // Bilinen (Yeşil) harfleri ve ilk harfi birleştirip başlangıç kelimesini oluşturur
+    const constructInitialGuess = useCallback((length, startChar, pastGuesses = []) => {
+        // Boşluklarla dolu bir dizi oluştur
+        const chars = Array(length).fill(' ');
+        
+        // İlk harfi yerleştir
+        if (startChar && startChar.length > 0) {
+            chars[0] = startChar;
+        }
+
+        // Geçmiş tahminlerden yeşilleri topla
+        pastGuesses.forEach(g => {
+            if (!g) return;
+            g.result.forEach((res, i) => {
+                if (res === 'green') {
+                    chars[i] = g.word[i];
+                }
+            });
+        });
+
+        return chars.join('');
+    }, []);
+
     // Oyunu Başlat
     const startGame = async () => {
         try {
@@ -78,7 +101,11 @@ export const useLingo = () => {
             setFirstLetter(res.data.firstLetter);
             setGuesses(Array(5).fill(null)); // 5 hak
             setCurrentRow(0);
-            setCurrentGuess(res.data.firstLetter); // İlk harf otomatik
+            
+            // İlk tahmini hazırla (Sadece ilk harf ve boşluklar)
+            const initialGuess = constructInitialGuess(res.data.currentWordLength, res.data.firstLetter, []);
+            setCurrentGuess(initialGuess);
+            
             setScore(res.data.totalScore);
             setTimeLeft(15); // Klasik mod satır süresi
             processingRef.current = false;
@@ -97,7 +124,10 @@ export const useLingo = () => {
             setFinalStage(4);
             setCurrentWordLength(4);
             setFirstLetter(res.data.firstLetter);
-            setCurrentGuess(res.data.firstLetter ? String(res.data.firstLetter) : '');
+            
+            const initialGuess = constructInitialGuess(4, res.data.firstLetter, []);
+            setCurrentGuess(initialGuess);
+            
             setCurrentRow(0); // BUG FIX: Final turunda satırı başa al
             setGuesses(Array(5).fill(null)); // Finalde de 5 hak var
             setTimeLeft(120); // 120 saniye toplam süre
@@ -120,7 +150,10 @@ export const useLingo = () => {
             setCurrentRow(0);
             setCurrentWordLength(nextWordData.wordLength);
             setFirstLetter(nextWordData.firstLetter);
-            setCurrentGuess(nextWordData.firstLetter);
+            
+            const initialGuess = constructInitialGuess(nextWordData.wordLength, nextWordData.firstLetter, []);
+            setCurrentGuess(initialGuess);
+            
             setTimeLeft(15);
             setMessage(""); // Mesajı temizle
             setIsTransitioning(false); // Kilidi aç
@@ -129,10 +162,14 @@ export const useLingo = () => {
         }
     }, []);
 
-    const handleNextRow = useCallback(() => {
+    const handleNextRow = useCallback((latestGuesses) => {
         if (currentRow < 4) {
             setCurrentRow(prev => prev + 1);
-            setCurrentGuess(firstLetter); // Yeni satır yine ilk harfle başlar
+            
+            // Bir sonraki satır için yeşil harfleri taşı
+            const nextGuessStr = constructInitialGuess(currentWordLength, firstLetter, latestGuesses || guesses);
+            setCurrentGuess(nextGuessStr);
+            
             setTimeLeft(15); // Süreyi resetle
         } else {
             // Haklar bitti, kelime bilinemedi
@@ -141,7 +178,7 @@ export const useLingo = () => {
             // Bu örnekte basitleştirildi.
             setMessage("Kelime bilinemedi!");
         }
-    }, [currentRow, firstLetter]);
+    }, [currentRow, firstLetter, currentWordLength, guesses, constructInitialGuess]);
 
     const handleTimeout = useCallback(async () => {
         if (gameState === 'playing') {
@@ -204,7 +241,8 @@ export const useLingo = () => {
 
     const submitGuess = useCallback(async () => {
         if (processingRef.current) return;
-        if (currentGuess.length !== Number(currentWordLength)) return;
+        // Boşluk kontrolü: Kelime tam doldurulmuş mu?
+        if (currentGuess.includes(' ') || currentGuess.length !== Number(currentWordLength)) return;
 
         // İstek başladığında kilitle
         processingRef.current = true;
@@ -267,7 +305,10 @@ export const useLingo = () => {
                     setGuesses(newGuesses);
                     setScore(res.data.score); // Puan güncellenmiş olabilir (ceza)
                     playSound('wrong');
-                    handleNextRow();
+                    
+                    // Yeni satıra geçerken güncel tahminleri gönder
+                    handleNextRow(newGuesses);
+                    
                     setIsTransitioning(false); // Devam ettiği için kilidi aç
                     processingRef.current = false;
                 }
@@ -287,7 +328,10 @@ export const useLingo = () => {
                         setFinalStage(res.data.nextStage);
                         setCurrentWordLength(res.data.wordLength);
                         setFirstLetter(res.data.firstLetter);
-                        setCurrentGuess(res.data.firstLetter);
+                        
+                        const initialGuess = constructInitialGuess(res.data.wordLength, res.data.firstLetter, []);
+                        setCurrentGuess(initialGuess);
+                        
                         setGuesses(Array(5).fill(null));
                         setCurrentRow(0);
                         setMessage("");
@@ -310,7 +354,8 @@ export const useLingo = () => {
                         processingRef.current = false;
                     }, 5000);
 
-                } else if (res.data.status === 'final_fail') {
+                } else if (res.data.status === 'final_fail' || res.data.status === 'final_wrong') {
+                    // final_wrong: Eski backend uyumluluğu için
                     // setIsTransitioning(true); // Zaten kilitli
                     playSound('fail');
                     setMessage(res.data.message);
@@ -325,7 +370,10 @@ export const useLingo = () => {
 
                     setTimeout(() => {
                         setFirstLetter(res.data.newFirstLetter);
-                        setCurrentGuess(res.data.newFirstLetter);
+                        
+                        const initialGuess = constructInitialGuess(res.data.newWordLength || currentWordLength, res.data.newFirstLetter, []);
+                        setCurrentGuess(initialGuess);
+                        
                         setGuesses(Array(5).fill(null));
                         setCurrentRow(0);
                         setMessage("");
@@ -339,7 +387,11 @@ export const useLingo = () => {
                     newGuesses[currentRow] = { word: currentGuess, result: res.data.result };
                     setGuesses(newGuesses);
                     setCurrentRow(prev => prev + 1);
-                    setCurrentGuess(firstLetter ? String(firstLetter) : '');
+                    
+                    // Final turunda da yeşilleri taşı
+                    const nextGuessStr = constructInitialGuess(currentWordLength, firstLetter, newGuesses);
+                    setCurrentGuess(nextGuessStr);
+                    
                     setIsTransitioning(false); // Devam ettiği için kilidi aç
                     processingRef.current = false;
                 } else {
@@ -355,25 +407,53 @@ export const useLingo = () => {
             setIsTransitioning(false); // Hata durumunda kilidi aç
             processingRef.current = false;
         }
-    }, [currentGuess, currentWordLength, sessionId, gameState, guesses, currentRow, handleNextRow, handleNextWordTransition, firstLetter]);
+    }, [currentGuess, currentWordLength, sessionId, gameState, guesses, currentRow, handleNextRow, handleNextWordTransition, firstLetter, constructInitialGuess]);
 
     const handleKey = useCallback((key) => {
         if ((gameState !== 'playing' && gameState !== 'final') || processingRef.current) return;
 
         if (key === 'BACKSPACE') {
-            if (currentGuess.length > 1) { // İlk harfi silemezsin
-                playSound('key');
-                setCurrentGuess(prev => prev.slice(0, -1));
+            // Sondan başa doğru ilk silinebilir (kilitli olmayan) karakteri bul
+            const knownChars = constructInitialGuess(currentWordLength, firstLetter, guesses).split('');
+            const currentChars = currentGuess.split('');
+            
+            // Sağdan sola tara
+            for (let i = currentWordLength - 1; i >= 0; i--) {
+                // Eğer bu pozisyon zaten doluysa ve kilitli (known) değilse sil
+                if (currentChars[i] !== ' ' && knownChars[i] === ' ') {
+                    playSound('key');
+                    const newChars = [...currentChars];
+                    newChars[i] = ' ';
+                    setCurrentGuess(newChars.join(''));
+                    break;
+                }
             }
         } else if (key === 'ENTER') {
             submitGuess();
         } else {
-            if (currentGuess.length < currentWordLength) {
+            // Soldan sağa ilk boşluğu bul ve doldur
+            if (currentGuess.includes(' ')) {
                 playSound('key');
-                setCurrentGuess(prev => prev + key);
+                const newChars = currentGuess.split('');
+                const emptyIndex = newChars.indexOf(' ');
+                if (emptyIndex !== -1) {
+                    newChars[emptyIndex] = key;
+                    setCurrentGuess(newChars.join(''));
+                }
             }
         }
-    }, [gameState, currentGuess, currentWordLength, submitGuess]);
+    }, [gameState, currentGuess, currentWordLength, submitGuess, firstLetter, guesses, constructInitialGuess]);
+
+    // Skoru Kaydet
+    const submitScore = async (playerName) => {
+        try {
+            await axios.post('/api/leaderboard', { name: playerName, score });
+            return true;
+        } catch (err) {
+            console.error("Skor kaydedilemedi", err);
+            return false;
+        }
+    };
 
     return {
         gameState,
@@ -388,6 +468,7 @@ export const useLingo = () => {
         finalReward,
         startGame,
         startFinal,
+        submitScore,
         handleKey,
         letterStatuses
     };

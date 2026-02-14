@@ -1,10 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLingo } from "../hooks/useLingo";
 import GameBoard from "../components/GameBoard";
 import Keyboard from "../components/Keyboard";
 import "../styles/GamePage.css";
 
 export default function GamePage() {
+  const [playerName, setPlayerName] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   const {
     gameState,
     score,
@@ -18,6 +21,7 @@ export default function GamePage() {
     finalReward,
     startGame,
     startFinal,
+    submitScore,
     handleKey,
     letterStatuses
   } = useLingo();
@@ -26,6 +30,12 @@ export default function GamePage() {
     startGame();
     // eslint-disable-next-line
   }, []);
+
+  const handleSaveScore = async () => {
+    if (!playerName.trim()) return;
+    const success = await submitScore(playerName);
+    if (success) setIsSubmitted(true);
+  };
 
   // Fiziksel klavye desteği
   useEffect(() => {
@@ -132,6 +142,25 @@ export default function GamePage() {
              <div className="end-content">
                <h2>OYUN BİTTİ</h2>
                <p className="final-score">Kazanılan Ödül: <br/> <strong>{finalReward || "0 Puan"}</strong></p>
+               
+               {!isSubmitted ? (
+                 <div className="flex flex-col gap-3 mb-6">
+                   <input 
+                     type="text" 
+                     placeholder="Adınızı Girin" 
+                     maxLength={15}
+                     className="p-3 rounded-xl bg-white/10 border border-white/20 text-white text-center outline-none focus:border-yellow-400"
+                     value={playerName}
+                     onChange={(e) => setPlayerName(e.target.value)}
+                   />
+                   <button className="next-btn bg-yellow-500 hover:bg-yellow-600" onClick={handleSaveScore}>
+                     SKORU KAYDET
+                   </button>
+                 </div>
+               ) : (
+                 <p className="text-green-400 font-bold mb-6">Skorunuz Kaydedildi! ✅</p>
+               )}
+
                <button className="next-btn" onClick={() => window.location.reload()}>
                  TEKRAR OYNA
                </button>

@@ -36,6 +36,15 @@ export default function HomePage() {
           </button>
           
           <button 
+            className="menu-btn" 
+            onClick={() => navigate("/leaderboard")}
+            style={{ background: 'rgba(255, 255, 255, 0.1)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.3)' }}
+          >
+            <span className="btn-icon">🏆</span>
+            LİDER TABLOSU
+          </button>
+
+          <button 
             className="menu-btn rules-btn" 
             onClick={() => setShowRules(!showRules)}
             data-testid="rules-btn"
