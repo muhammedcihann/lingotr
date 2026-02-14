@@ -460,7 +460,7 @@ export const useLingo = () => {
             const res = await axios.post(`${API_URL}/pass`, { sessionId });
             
             if (res.data.status === 'passed') {
-                setMessage(res.data.message);
+                setMessage(`Pas geçildi! Doğru Cevap: ${res.data.skippedWord.toLocaleUpperCase('tr-TR')}`);
                 
                 setTimeout(() => {
                     setFirstLetter(res.data.newFirstLetter);
@@ -472,7 +472,7 @@ export const useLingo = () => {
                     setMessage("");
                     setIsTransitioning(false);
                     processingRef.current = false;
-                }, 1000);
+                }, 2000);
             }
         } catch (err) {
             console.error(err);

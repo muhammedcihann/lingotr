@@ -358,6 +358,8 @@ router.post('/pass', (req, res) => {
         return res.status(400).json({ error: "Pas geçmek için önce geçerli bir tahmin yapmalısınız." });
     }
 
+    const skippedWord = session.words[0].word; // Pas geçilen kelimeyi yakala
+
     // Yeni kelime ver (Aynı seviyeden)
     const newWord = getRandomWord(session.finalStage);
     session.words[0] = { word: newWord, length: session.finalStage };
@@ -365,7 +367,8 @@ router.post('/pass', (req, res) => {
 
     res.json({
         status: 'passed',
-        message: 'Pas geçildi! Yeni kelime geliyor...',
+        message: 'Pas geçildi!',
+        skippedWord: skippedWord,
         newFirstLetter: newWord[0],
         newWordLength: session.finalStage
     });
