@@ -8,7 +8,8 @@ export default function LeaderboardPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get('/api/leaderboard')
+    const BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
+    axios.get(`${BASE_URL}/api/leaderboard`)
       .then(res => setScores(res.data))
       .catch(err => console.error(err));
   }, []);

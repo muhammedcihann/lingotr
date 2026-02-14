@@ -4,7 +4,8 @@ import axios from 'axios';
 // Backend URL'ini belirle
 // Proxy (package.json) kullanıldığı için sadece relative path yeterlidir.
 // Bu sayede hem local'de hem de production'da (aynı domain altındaysa) çalışır.
-const API_URL = '/api/game';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API_URL = `${BASE_URL}/api/game`;
 
 // Ses Efektleri
 const SOUNDS = {
@@ -447,7 +448,7 @@ export const useLingo = () => {
     // Skoru Kaydet
     const submitScore = async (playerName) => {
         try {
-            await axios.post('/api/leaderboard', { name: playerName, score });
+            await axios.post(`${BASE_URL}/api/leaderboard`, { name: playerName, score });
             return true;
         } catch (err) {
             console.error("Skor kaydedilemedi", err);
