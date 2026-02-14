@@ -124,15 +124,28 @@ export default function GamePage() {
         {gameState === "round-end" && (
           <div className="end-modal" data-testid="end-modal">
             <div className="end-content">
-              <h2>🎊 Tur Tamamlandı!</h2>
-              <p className="final-score">Toplam Puan: <strong>{score}</strong></p>
-              <button 
-                className="next-btn" 
-                onClick={startFinal}
-                data-testid="next-round-btn"
-              >
-                FİNAL TURUNA GEÇ
-              </button>
+              {score > 0 ? (
+                <>
+                  <h2>🎊 Tur Tamamlandı!</h2>
+                  <p className="final-score">Toplam Puan: <strong>{score}</strong></p>
+                  <button 
+                    className="next-btn" 
+                    onClick={startFinal}
+                    data-testid="next-round-btn"
+                  >
+                    FİNAL TURUNA GEÇ
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h2>😔 Yetersiz Puan</h2>
+                  <p className="final-score">Toplam Puan: <strong>0</strong></p>
+                  <p className="mb-6 text-gray-300">Final turuna geçmek için kasanızda puan olması gerekir.</p>
+                  <button className="next-btn" onClick={() => window.location.reload()}>
+                    TEKRAR OYNA
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
