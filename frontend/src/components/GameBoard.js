@@ -1,11 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-export default function GameBoard({ guesses, currentGuess, currentRow, wordLength, isFinal }) {
+export default function GameBoard({ guesses, currentGuess, currentRow, wordLength, isFinal, timeLeft }) {
   const rows = [0, 1, 2, 3, 4];
 
   return (
     <div className="flex flex-col gap-2 mb-6">
+      {/* Son 5 saniye kala kırmızı vignette (yanıp sönme) efekti */}
+      {timeLeft !== undefined && timeLeft <= 5 && timeLeft > 0 && (
+        <div className="fixed inset-0 z-50 pointer-events-none animate-pulse shadow-[inset_0_0_60px_20px_rgba(220,38,38,0.5)] sm:shadow-[inset_0_0_100px_40px_rgba(220,38,38,0.5)]"></div>
+      )}
+
       {rows.map((rowIndex) => {
         const isCurrentRow = rowIndex === currentRow;
         const guessData = guesses[rowIndex];

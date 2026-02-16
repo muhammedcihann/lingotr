@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 
+console.log("✅ GAME ROUTES YÜKLENDİ (Kod Güncel)");
+
 // Yardımcı Fonksiyonlar
 const getRandomWord = (length) => {
     const list = global.WORD_DB[length] || [];
@@ -112,11 +114,33 @@ router.post('/start', (req, res) => {
 // Tahmin Yap
 router.post('/guess', (req, res) => {
     const { sessionId, guess } = req.body;
+    
+    console.log(`\n🔹 İSTEK GELDİ: SessionID=${sessionId}, Tahmin=${guess}`);
+
     const session = global.gameSessions.get(sessionId);
 
-    if (!session) return res.status(404).json({ error: "Oturum bulunamadı" });
+    if (!session) {
+        console.log("❌ HATA: Oturum bulunamadı (Sunucu yeniden başlatılmış olabilir)");
+        return res.status(404).json({ error: "Oturum bulunamadı" });
+    }
 
-    // Güvenlik: Final modunda indeks kayması varsa düzelt (Crash önleyici)
+    // 1. Temel Kontroller
+    if (!guess || typeof guess !== 'string') {
+        return res.status(400).json({ error: "Geçersiz tahmin verisi" });
+    }
+    const guessClean = guess.trim();
+    if (!guessClean) return res.status(400).json({ error: "Boş tahmin" });
+    
+    const guessLower = guessClean.toLocaleLowerCase('tr-TR');
+
+    // Güvenlik: guesses dizisi yoksa oluştur
+    if (!session.guesses || !Array.isArray(session.guesses)) {
+        session.guesses = [];
+    }
+    
+    console.log(`🔎 KONTROL: Kelime='${guessLower}', Hafıza=${JSON.stringify(session.guesses)}`);
+
+    // Final modu güvenliği
     if (session.mode === 'final' && (!session.words[session.currentWordIndex])) {
         session.currentWordIndex = 0;
     }
@@ -124,28 +148,64 @@ router.post('/guess', (req, res) => {
     const currentTargetObj = session.words[session.currentWordIndex];
     const targetWord = currentTargetObj.word;
     const scoring = getScoring(targetWord.length);
-    
-    // Güvenlik: guess boş gelirse hata vermesin
-    if (!guess || typeof guess !== 'string') {
-        return res.status(400).json({ error: "Geçersiz tahmin verisi" });
-    }
-    const guessLower = guess.toLocaleLowerCase('tr-TR');
 
-    // --- KLASİK MOD MANTIĞI ---
-    if (session.mode === 'classic') {
-        // 1. Geçersiz Kelime Kontrolü (TDK)
-        if (!global.WORD_DB[targetWord.length].includes(guessLower)) {
-            // KURAL: Geçersiz kelime girilirse o soru direkt yanar!
-            session.currentWordScore = 0; // Bu sorudan puan alınamaz
-            
+    // ---------------------------------------------------------
+    // 🚨 KONTROL 1: AYNI KELİME Mİ? (En Başa Koyduk)
+    // ---------------------------------------------------------
+    if (session.guesses.includes(guessLower)) {
+        console.log(`⚠️ DUPLICATE: '${guessLower}' zaten var! Soru yakılıyor...`);
+        
+        // Ceza: Soru Yanar
+        session.currentWordScore = 0;
+
+        if (session.mode === 'classic') {
             const nextInfo = prepareNextWord(session);
-            
-            let delay = 5000; // Standart geçiş 5 saniye
-            if (nextInfo.hasMore && session.currentWordIndex === 6) delay = 10000; // Tur geçişi 10 saniye
+            let delay = 4000;
+            if (nextInfo.hasMore && session.currentWordIndex === 6) delay = 8000;
 
             return res.json({
                 status: 'fail',
-                message: `Geçersiz Kelime! Doğru Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
+                message: `⚠️ AYNI KELİME! Soru Yandı. Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
+                score: session.totalScore, // Kasa değişmez
+                correctWord: targetWord,
+                isRoundFinished: !nextInfo.hasMore,
+                nextWord: nextInfo.hasMore ? nextInfo : null,
+                nextDelay: delay
+            });
+        } 
+        else if (session.mode === 'final') {
+            const newWord = getRandomWord(session.finalStage);
+            session.words[0] = { word: newWord, length: session.finalStage };
+            session.guesses = []; 
+
+            return res.json({
+                status: 'final_fail',
+                message: `⚠️ AYNI KELİME! Yeni kelime geliyor...`,
+                newFirstLetter: newWord[0],
+                newWordLength: session.finalStage
+            });
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 🚨 KONTROL 2: GEÇERLİ KELİME Mİ? (TDK)
+    // ---------------------------------------------------------
+    if (!global.WORD_DB[targetWord.length].includes(guessLower)) {
+        console.log(`🚫 GEÇERSİZ: '${guessLower}' sözlükte yok.`);
+        session.currentWordScore = 0;
+
+        // Geçersiz kelime de olsa "denendi" saymak istiyorsan burayı açabilirsin:
+        // session.guesses.push(guessLower); 
+        // Ama genelde geçersiz kelime hak yemez ama soru yakar, o yüzden kaydetmiyoruz.
+
+        if (session.mode === 'classic') {
+            const nextInfo = prepareNextWord(session);
+            let delay = 4000;
+            if (nextInfo.hasMore && session.currentWordIndex === 6) delay = 8000;
+
+            return res.json({
+                status: 'fail',
+                message: `🚫 GEÇERSİZ KELİME! Soru Yandı. Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
                 score: session.totalScore, // Kasa değişmez
                 correctWord: targetWord,
                 isRoundFinished: !nextInfo.hasMore,
@@ -153,21 +213,43 @@ router.post('/guess', (req, res) => {
                 nextDelay: delay
             });
         }
+        else if (session.mode === 'final') {
+            const newWord = getRandomWord(session.finalStage);
+            session.words[0] = { word: newWord, length: session.finalStage };
+            session.guesses = []; 
 
-        const result = checkWord(targetWord, guessLower);
-        const isCorrect = result.every(r => r === 'green');
+            return res.json({
+                status: 'final_fail',
+                message: `🚫 GEÇERSİZ KELİME! Yeni kelime geliyor...`,
+                newFirstLetter: newWord[0],
+                newWordLength: session.finalStage
+            });
+        }
+    }
 
+    // ---------------------------------------------------------
+    // 📝 KAYIT (BURASI ÇOK ÖNEMLİ)
+    // ---------------------------------------------------------
+    // Kelime geçerli ve duplicate değil.
+    // Doğru da olsa yanlış da olsa LİSTEYE EKLİYORUZ.
+    session.guesses.push(guessLower); 
+    console.log(`✅ KAYDEDİLDİ: Yeni Hafıza=${JSON.stringify(session.guesses)}`);
+
+    // ---------------------------------------------------------
+    // 🏁 SONUÇ HESAPLAMA
+    // ---------------------------------------------------------
+    const result = checkWord(targetWord, guessLower);
+    const isCorrect = result.every(r => r === 'green');
+
+    // --- KLASİK MOD ---
+    if (session.mode === 'classic') {
         if (isCorrect) {
-            // DOĞRU BİLDİ
-            // Kalan puanı kasaya ekle
             session.totalScore += session.currentWordScore;
-            
             const nextInfo = prepareNextWord(session);
-
-            let delay = 5000; // Standart geçiş 5 saniye
-            if (nextInfo.hasMore && session.currentWordIndex === 6) delay = 10000; // Tur geçişi 10 saniye
+            let delay = 4000;
+            if (nextInfo.hasMore && session.currentWordIndex === 6) delay = 8000;
             
-            res.json({
+            return res.json({
                 status: 'correct',
                 result,
                 score: session.totalScore,
@@ -178,27 +260,25 @@ router.post('/guess', (req, res) => {
         } else {
             // YANLIŞ TAHMİN
             session.currentWordScore = Math.max(0, session.currentWordScore - scoring.penalty);
-            session.guesses.push(guess);
             
             // 5 hak bitti mi?
             if (session.guesses.length >= 5) {
                 const nextInfo = prepareNextWord(session);
+                let delay = 4000;
+                if (nextInfo.hasMore && session.currentWordIndex === 6) delay = 8000;
 
-                let delay = 5000; // Standart geçiş 5 saniye
-                if (nextInfo.hasMore && session.currentWordIndex === 6) delay = 10000; // Tur geçişi 10 saniye
-
-                res.json({
+                return res.json({
                     status: 'fail',
                     result,
-                    score: session.totalScore, // Kasa değişmez, 0 puan eklendi
-                    message: `Bilemediniz! Doğru Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
+                    score: session.totalScore,
+                    message: `Hak bitti! Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
                     correctWord: targetWord,
                     isRoundFinished: !nextInfo.hasMore,
                     nextWord: nextInfo.hasMore ? nextInfo : null,
                     nextDelay: delay
                 });
             } else {
-                res.json({
+                return res.json({
                     status: 'wrong',
                     result,
                     score: session.totalScore
@@ -206,88 +286,51 @@ router.post('/guess', (req, res) => {
             }
         }
     }
-    
-    // --- FİNAL MODU MANTIĞI (DEATHMATCH) ---
+
+    // --- FİNAL MODU ---
     else if (session.mode === 'final') {
-        // 1. Geçersiz Kelime Kontrolü
-        if (!global.WORD_DB[targetWord.length].includes(guessLower)) {
-            // Finalde geçersiz kelime girilirse o kelime yanar, yenisi gelir (Kural gereği)
-            const newWord = getRandomWord(session.finalStage);
-            session.words[0] = { word: newWord, length: session.finalStage };
-            session.guesses = []; // Sıfırla
-
-            return res.json({
-                status: 'final_fail',
-                message: `Geçersiz Kelime! Doğru Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}. Yeni kelime geliyor...`,
-                newFirstLetter: newWord[0],
-                newWordLength: session.finalStage
-            });
-        }
-        
-        const result = checkWord(targetWord, guessLower);
-        const isCorrect = result.every(r => r === 'green');
-
         if (isCorrect) {
-            // Doğru Bildi -> Seviye Atla
             let reward = 0;
-            let nextStage = session.finalStage + 1;
-            let isGameFinished = false;
-
             if (session.finalStage === 4) reward = `${Math.floor(session.totalScore * 0.5)} Puan (Kasa %50)`;
             if (session.finalStage === 5) reward = `${session.totalScore} Puan (Kasa %100)`;
             if (session.finalStage === 6) reward = `${session.totalScore * 2} Puan (Kasa x2)`;
+            if (session.finalStage === 7) reward = `${(session.totalScore * 2)} Puan + 200.000 TL BÜYÜK ÖDÜL!`;
+
             if (session.finalStage === 7) {
-                reward = `${(session.totalScore * 2)} Puan + 200.000 TL BÜYÜK ÖDÜL!`;
-                isGameFinished = true;
+                 return res.json({ status: 'game_won', result, reward, totalScore: session.totalScore });
             }
 
-            if (!isGameFinished) {
-                // Yeni kelime hazırla
-                session.finalStage = nextStage;
-                const newWord = getRandomWord(nextStage);
-                session.words[0] = { word: newWord, length: nextStage }; // Finalde tek slot kullanıyoruz
-                session.guesses = [];
-                
-                res.json({
-                    status: 'final_correct',
-                    result,
-                    reward,
-                    nextStage,
-                    firstLetter: newWord[0],
-                    wordLength: nextStage
-                });
-            } else {
-                res.json({
-                    status: 'game_won',
-                    result,
-                    reward,
-                    totalScore: session.totalScore
-                });
-            }
+            // Yeni Aşama
+            session.finalStage += 1;
+            const newWord = getRandomWord(session.finalStage);
+            session.words[0] = { word: newWord, length: session.finalStage };
+            session.guesses = [];
+
+            return res.json({
+                status: 'final_correct',
+                result,
+                reward,
+                nextStage: session.finalStage,
+                firstLetter: newWord[0],
+                wordLength: session.finalStage
+            });
 
         } else {
-            // Yanlış Tahmin
-            session.guesses.push(guess);
-            
+            // Yanlış ama devam
             if (session.guesses.length >= 5) {
-                // 5 Hak Bitti -> Kelime Değişir (Aynı seviye)
                 const newWord = getRandomWord(session.finalStage);
                 session.words[0] = { word: newWord, length: session.finalStage };
                 session.guesses = [];
 
-                res.json({
+                return res.json({
                     status: 'final_fail',
                     result,
-                    message: `Bilemedin! Doğru Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}. Yeni kelime geliyor...`,
+                    message: `Bilemedin! Doğru: ${targetWord.toLocaleUpperCase('tr-TR')}. Yeni kelime...`,
                     newFirstLetter: newWord[0],
                     newWordLength: session.finalStage
                 });
             } else {
-                // Devam
-                res.json({
-                    status: 'final_continue',
-                    result
-                });
+                return res.json({ status: 'final_continue', result });
             }
         }
     }

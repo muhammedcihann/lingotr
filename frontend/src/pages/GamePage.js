@@ -116,6 +116,7 @@ export default function GamePage() {
             currentRow={currentRow}
             wordLength={currentWordLength}
             isFinal={gameState === 'final'}
+            timeLeft={timeLeft}
           />
         </div>
 

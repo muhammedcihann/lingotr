@@ -13,7 +13,8 @@ const SOUNDS = {
     correct: new Audio('/sounds/correct.mp3'),
     wrong: new Audio('/sounds/wrong.mp3'),
     fail: new Audio('/sounds/fail.mp3'),
-    win: new Audio('/sounds/win.mp3')
+    win: new Audio('/sounds/win.mp3'),
+    tick: new Audio('/sounds/tick.mp3')
 };
 
 export const useLingo = () => {
@@ -229,6 +230,10 @@ export const useLingo = () => {
 
         timerRef.current = setInterval(() => {
             setTimeLeft((prev) => {
+                // Son 5 saniye kala uyarı sesi (5, 4, 3, 2, 1)
+                if (prev <= 6 && prev > 1) {
+                    playSound('tick');
+                }
                 if (prev <= 1) {
                     handleTimeout();
                     return 0;
@@ -249,10 +254,13 @@ export const useLingo = () => {
         processingRef.current = true;
         setIsTransitioning(true);
 
+        const cleanGuess = currentGuess.trim();
+        console.log(`📤 FRONTEND: İstek gönderiliyor... Kelime: '${cleanGuess}', Session: ${sessionId}`);
+
         try {
             const res = await axios.post(`${API_URL}/guess`, {
                 sessionId,
-                guess: currentGuess
+                guess: cleanGuess
             });
 
             if (gameState === 'playing') {
@@ -404,7 +412,7 @@ export const useLingo = () => {
             }
 
         } catch (err) {
-            console.error(err);
+            console.error("❌ FRONTEND HATASI:", err);
             setIsTransitioning(false); // Hata durumunda kilidi aç
             processingRef.current = false;
         }
