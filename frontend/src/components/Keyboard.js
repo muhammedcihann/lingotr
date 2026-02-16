@@ -20,7 +20,7 @@ const Keyboard = ({ onKeyPress, letterStatuses = {} }) => {
     
     // Özel Tuşlar (Enter ve Silme) - Biraz daha geniş ve koyu gri
     if (key === 'ENTER' || key === 'BACKSPACE') {
-      return `${baseStyle} bg-gray-300 text-gray-700 border-gray-400 flex-[1.5]`; 
+      return `${baseStyle} bg-gray-300 text-gray-700 border-gray-400 flex-[1.5] active:bg-gray-400`; 
     }
 
     // Harf Renkleri
@@ -33,12 +33,12 @@ const Keyboard = ({ onKeyPress, letterStatuses = {} }) => {
         return `${baseStyle} bg-slate-500 text-gray-200 border-slate-600 opacity-60`;
       default:
         // Varsayılan Tuş (Beyaz, iOS Tarzı)
-        return `${baseStyle} bg-white text-slate-900 hover:bg-slate-50`;
+        return `${baseStyle} bg-white text-slate-900 hover:bg-slate-50 active:bg-gray-200`;
     }
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-1 pb-6 select-none touch-manipulation">
+    <div className="w-full max-w-3xl mx-auto px-1 pb-6 select-none touch-manipulation" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
       {/* Konteyner arka planı (Klavye zemini - Gri) */}
       <div className="bg-gray-200/50 p-1.5 rounded-xl backdrop-blur-sm">
         <div className="flex flex-col gap-1.5"> {/* Satır arası boşluk */}
@@ -67,9 +67,13 @@ const Keyboard = ({ onKeyPress, letterStatuses = {} }) => {
 
                 return (
                   <button
+                    type="button"
                     key={key}
                     onClick={() => onKeyPress(key)}
+                    onMouseDown={(e) => e.preventDefault()} // Tıklayınca odaklanmayı (mavi çerçeve) engeller
+                    aria-label={key === 'BACKSPACE' ? 'Sil' : key === 'ENTER' ? 'Onayla' : key}
                     className={getKeyStyle(key)}
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
                     {content}
                   </button>

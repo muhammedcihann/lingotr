@@ -14,6 +14,12 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// --- İSTEK LOGLAMA (Debug İçin) ---
+app.use((req, res, next) => {
+    console.log(`📩 [${new Date().toLocaleTimeString()}] İstek geldi: ${req.method} ${req.url}`);
+    next();
+});
+
 // --- KEEP-ALIVE (Sunucuyu Uyanık Tutma) ---
 app.get('/health', (req, res) => {
     res.status(200).send('Ben buradayım, uyumuyorum! 🚀');

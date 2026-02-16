@@ -15,11 +15,20 @@ export default function GameBoard({ guesses, currentGuess, currentRow, wordLengt
         const isCurrentRow = rowIndex === currentRow;
         const guessData = guesses[rowIndex];
         
+        // Hata Kontrolü: Eğer sonuçta 'invalid' varsa satırı titret
+        const isInvalid = guessData && guessData.result.some(r => r === 'invalid');
+        
         return (
-          <div key={rowIndex} className="flex gap-2 justify-center">
+          <motion.div 
+            key={rowIndex} 
+            className="flex gap-2 justify-center"
+            animate={isInvalid ? { x: [-5, 5, -5, 5, 0] } : { x: 0 }}
+            transition={{ duration: 0.4 }}
+          >
             {[...Array(wordLength)].map((_, colIndex) => {
               let letter = "";
               let status = "cell-empty"; // Default
+              let shouldFlip = false;
 
               if (isCurrentRow && !guessData) {
                 letter = currentGuess[colIndex] || "";
@@ -32,25 +41,34 @@ export default function GameBoard({ guesses, currentGuess, currentRow, wordLengt
                 else if (res === 'yellow') status = "cell-present";
                 else if (res === 'gray') status = "cell-absent";
                 else if (res === 'invalid') status = "cell-invalid"; // Geçersiz kelime
+                
+                // Eğer geçerli bir tahminse (invalid değilse) çevirme animasyonu yap
+                if (!isInvalid) shouldFlip = true;
               }
 
-              // Dalga Efekti (Wave Effect)
-              // Eğer satır açılmışsa (guessData varsa), her harfe index * 0.15s gecikme ekle
-              const animationDelay = guessData ? `${colIndex * 0.15}s` : '0s';
+              // CSS transition delay (Renk değişimi için)
+              const cssDelay = shouldFlip ? `${colIndex * 0.2}s` : '0s';
 
               return (
                 <motion.div
                   key={colIndex}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
+                  initial={{ rotateX: 0, scale: 1 }}
+                  animate={{ 
+                    rotateX: shouldFlip ? [0, 90, 0] : 0, // 90 derecede görünmez olur, renk değişir, sonra 0'a döner
+                    scale: (isCurrentRow && letter && !guessData) ? [1, 1.1, 1] : 1 // Yazarken hafif büyüme (Pop) efekti
+                  }}
+                  transition={{ 
+                    rotateX: { duration: 0.6, delay: colIndex * 0.2 },
+                    scale: { duration: 0.1 }
+                  }}
                   className={`cell-base ${status} transition-all duration-500`}
-                  style={{ transitionDelay: animationDelay }}
+                  style={{ transitionDelay: cssDelay }}
                 >
                   {letter?.toLocaleUpperCase('tr-TR')}
                 </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         );
       })}
     </div>
