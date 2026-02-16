@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/lingotr/static/css/main.bc005dbf.css",
-    "main.js": "/lingotr/static/js/main.15f098f5.js",
+    "main.css": "/lingotr/static/css/main.fd6f120d.css",
+    "main.js": "/lingotr/static/js/main.025f9520.js",
     "index.html": "/lingotr/index.html",
-    "main.bc005dbf.css.map": "/lingotr/static/css/main.bc005dbf.css.map",
-    "main.15f098f5.js.map": "/lingotr/static/js/main.15f098f5.js.map"
+    "main.fd6f120d.css.map": "/lingotr/static/css/main.fd6f120d.css.map",
+    "main.025f9520.js.map": "/lingotr/static/js/main.025f9520.js.map"
   },
   "entrypoints": [
-    "static/css/main.bc005dbf.css",
-    "static/js/main.15f098f5.js"
+    "static/css/main.fd6f120d.css",
+    "static/js/main.025f9520.js"
   ]
 }
