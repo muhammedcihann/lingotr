@@ -34,12 +34,17 @@ export default function GameBoard({ guesses, currentGuess, currentRow, wordLengt
                 else if (res === 'invalid') status = "cell-invalid"; // Geçersiz kelime
               }
 
+              // Dalga Efekti (Wave Effect)
+              // Eğer satır açılmışsa (guessData varsa), her harfe index * 0.15s gecikme ekle
+              const animationDelay = guessData ? `${colIndex * 0.15}s` : '0s';
+
               return (
                 <motion.div
                   key={colIndex}
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
-                  className={`cell-base ${status}`}
+                  className={`cell-base ${status} transition-all duration-500`}
+                  style={{ transitionDelay: animationDelay }}
                 >
                   {letter?.toLocaleUpperCase('tr-TR')}
                 </motion.div>

@@ -2,8 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 
-console.log("✅ GAME ROUTES YÜKLENDİ (Kod Güncel)");
-
 // Yardımcı Fonksiyonlar
 const getRandomWord = (length) => {
     const list = global.WORD_DB[length] || [];
@@ -114,13 +112,9 @@ router.post('/start', (req, res) => {
 // Tahmin Yap
 router.post('/guess', (req, res) => {
     const { sessionId, guess } = req.body;
-    
-    console.log(`\n🔹 İSTEK GELDİ: SessionID=${sessionId}, Tahmin=${guess}`);
-
     const session = global.gameSessions.get(sessionId);
 
     if (!session) {
-        console.log("❌ HATA: Oturum bulunamadı (Sunucu yeniden başlatılmış olabilir)");
         return res.status(404).json({ error: "Oturum bulunamadı" });
     }
 
@@ -137,8 +131,6 @@ router.post('/guess', (req, res) => {
     if (!session.guesses || !Array.isArray(session.guesses)) {
         session.guesses = [];
     }
-    
-    console.log(`🔎 KONTROL: Kelime='${guessLower}', Hafıza=${JSON.stringify(session.guesses)}`);
 
     // Final modu güvenliği
     if (session.mode === 'final' && (!session.words[session.currentWordIndex])) {
@@ -153,8 +145,6 @@ router.post('/guess', (req, res) => {
     // 🚨 KONTROL 1: AYNI KELİME Mİ? (En Başa Koyduk)
     // ---------------------------------------------------------
     if (session.guesses.includes(guessLower)) {
-        console.log(`⚠️ DUPLICATE: '${guessLower}' zaten var! Soru yakılıyor...`);
-        
         // Ceza: Soru Yanar
         session.currentWordScore = 0;
 
@@ -165,7 +155,7 @@ router.post('/guess', (req, res) => {
 
             return res.json({
                 status: 'fail',
-                message: `⚠️ AYNI KELİME! Soru Yandı. Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
+                message: `Daha Önce Aynı Kelimeyi Girdiniz! Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
                 score: session.totalScore, // Kasa değişmez
                 correctWord: targetWord,
                 isRoundFinished: !nextInfo.hasMore,
@@ -180,7 +170,7 @@ router.post('/guess', (req, res) => {
 
             return res.json({
                 status: 'final_fail',
-                message: `⚠️ AYNI KELİME! Yeni kelime geliyor...`,
+                message: `Daha Önce Aynı Kelimeyi Girdiniz! Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
                 newFirstLetter: newWord[0],
                 newWordLength: session.finalStage
             });
@@ -191,7 +181,6 @@ router.post('/guess', (req, res) => {
     // 🚨 KONTROL 2: GEÇERLİ KELİME Mİ? (TDK)
     // ---------------------------------------------------------
     if (!global.WORD_DB[targetWord.length].includes(guessLower)) {
-        console.log(`🚫 GEÇERSİZ: '${guessLower}' sözlükte yok.`);
         session.currentWordScore = 0;
 
         // Geçersiz kelime de olsa "denendi" saymak istiyorsan burayı açabilirsin:
@@ -205,7 +194,7 @@ router.post('/guess', (req, res) => {
 
             return res.json({
                 status: 'fail',
-                message: `🚫 GEÇERSİZ KELİME! Soru Yandı. Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
+                message: `Geçersiz Bir Kelime Girdiniz! Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
                 score: session.totalScore, // Kasa değişmez
                 correctWord: targetWord,
                 isRoundFinished: !nextInfo.hasMore,
@@ -220,7 +209,7 @@ router.post('/guess', (req, res) => {
 
             return res.json({
                 status: 'final_fail',
-                message: `🚫 GEÇERSİZ KELİME! Yeni kelime geliyor...`,
+                message: `Geçersiz Bir Kelime Girdiniz! Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
                 newFirstLetter: newWord[0],
                 newWordLength: session.finalStage
             });
@@ -233,7 +222,6 @@ router.post('/guess', (req, res) => {
     // Kelime geçerli ve duplicate değil.
     // Doğru da olsa yanlış da olsa LİSTEYE EKLİYORUZ.
     session.guesses.push(guessLower); 
-    console.log(`✅ KAYDEDİLDİ: Yeni Hafıza=${JSON.stringify(session.guesses)}`);
 
     // ---------------------------------------------------------
     // 🏁 SONUÇ HESAPLAMA
@@ -271,7 +259,7 @@ router.post('/guess', (req, res) => {
                     status: 'fail',
                     result,
                     score: session.totalScore,
-                    message: `Hak bitti! Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
+                    message: `Doğru Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}`,
                     correctWord: targetWord,
                     isRoundFinished: !nextInfo.hasMore,
                     nextWord: nextInfo.hasMore ? nextInfo : null,
@@ -325,7 +313,7 @@ router.post('/guess', (req, res) => {
                 return res.json({
                     status: 'final_fail',
                     result,
-                    message: `Bilemedin! Doğru: ${targetWord.toLocaleUpperCase('tr-TR')}. Yeni kelime...`,
+                    message: `Doğru Cevap: ${targetWord.toLocaleUpperCase('tr-TR')}. Yeni kelime...`,
                     newFirstLetter: newWord[0],
                     newWordLength: session.finalStage
                 });

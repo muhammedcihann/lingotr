@@ -8,7 +8,7 @@ const KEYS = [
 
 export default function Keyboard({ onKeyPress, letterStatuses = {} }) {
   return (
-    <div className="w-full max-w-4xl mx-auto p-2 sm:p-4 select-none">
+    <div className="w-full max-w-4xl mx-auto p-2 pb-8 sm:p-4 select-none">
       <div className="flex flex-col gap-2">
         {KEYS.map((row, i) => (
           <div key={i} className="flex justify-center gap-1 sm:gap-1.5 w-full">

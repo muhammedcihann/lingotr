@@ -4,7 +4,7 @@ import axios from 'axios';
 // Backend URL'ini belirle
 // Proxy (package.json) kullanıldığı için sadece relative path yeterlidir.
 // Bu sayede hem local'de hem de production'da (aynı domain altındaysa) çalışır.
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || '';
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
 const API_URL = `${BASE_URL}/api/game`;
 
 // Ses Efektleri
@@ -95,7 +95,6 @@ export const useLingo = () => {
     // Oyunu Başlat
     const startGame = async () => {
         try {
-            console.log("🚀 Oyun başlatılıyor. İstek adresi:", `${API_URL}/start`);
             const res = await axios.post(`${API_URL}/start`);
             setSessionId(res.data.sessionId);
             setGameState('playing');
@@ -255,7 +254,6 @@ export const useLingo = () => {
         setIsTransitioning(true);
 
         const cleanGuess = currentGuess.trim();
-        console.log(`📤 FRONTEND: İstek gönderiliyor... Kelime: '${cleanGuess}', Session: ${sessionId}`);
 
         try {
             const res = await axios.post(`${API_URL}/guess`, {
@@ -412,7 +410,7 @@ export const useLingo = () => {
             }
 
         } catch (err) {
-            console.error("❌ FRONTEND HATASI:", err);
+            console.error(err);
             setIsTransitioning(false); // Hata durumunda kilidi aç
             processingRef.current = false;
         }
@@ -469,6 +467,15 @@ export const useLingo = () => {
             
             if (res.data.status === 'passed') {
                 setMessage(`Pas geçildi! Doğru Cevap: ${res.data.skippedWord.toLocaleUpperCase('tr-TR')}`);
+                playSound('fail');
+
+                // Animasyon: Pas geçilen kelimeyi göster (Kırmızı/Invalid olarak)
+                const newGuesses = [...guesses];
+                newGuesses[currentRow] = { 
+                    word: res.data.skippedWord, 
+                    result: Array(res.data.skippedWord.length).fill('invalid') 
+                };
+                setGuesses(newGuesses);
                 
                 setTimeout(() => {
                     setFirstLetter(res.data.newFirstLetter);
@@ -487,7 +494,7 @@ export const useLingo = () => {
             setIsTransitioning(false);
             processingRef.current = false;
         }
-    }, [guesses, sessionId, constructInitialGuess]);
+    }, [guesses, sessionId, constructInitialGuess, currentRow]);
 
     // Skoru Kaydet
     const submitScore = async (playerName) => {
